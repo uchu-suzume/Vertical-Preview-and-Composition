@@ -4,7 +4,7 @@
 
     Vertical Previewer and Composition (version 0.2)
 
-    Authors: CeeJay.dk, seri14, Marot Satil, prod80, Uchu Suzume, originalnicodr
+    Authors: CeeJay.dk, seri14, Marot Satil, prod80, uchu suzume, originalnicodr
                     Composition https://github.com/Daodan317081/reshade-shaders
     License: MIT
 
@@ -17,10 +17,10 @@
     (*) Feature (+) Improvement (x) Bugfix (-) Information (!) Compatibility
     
     Version 0.2 Uchu Suzume & Marot Satil
-    *Created by Uchu Suzume, with code optimization by Marot Satil.
-	+Added an on/off toggle variable.
-    +Adding a feature to make this shader not visible in screenshots.
-    +Added a guide showing thumbnail crop ratios for posting to social media.
+    * Created by Uchu Suzume, with code optimization by Marot Satil.
+	* Added an on/off toggle variable.
+    * Added a feature to make this shader not visible in screenshots.
+    * Added a guide showing thumbnail crop ratios for posting to social media.
 */
 
 #include "ReShade.fxh"
