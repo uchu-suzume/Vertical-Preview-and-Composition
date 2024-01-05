@@ -110,21 +110,30 @@ uniform float UIGridLineWidth <
     ui_steps = 0.01;
 > = 2.0;
 
-uniform int cLayerVPre_CompositionARatio <
-    ui_type = "combo";
-    ui_spacing = 1;
-    ui_label = "Thumbnail Cropping Guide";
+uniform float cLayerVPre_CompositionARatio <
+    ui_type = "drag";
+    ui_min = 0.0; ui_max = 5.0; ui_step = 0.001;
+    ui_label = "Thumbnail Cropping Ratio";
     ui_tooltip = "Display a guide to thumbnail cropping\n"
-                 "on Twitter and Instagram.\n"
-                 "The area between lines will be\n"
-                 "reflected to thumbnails.\n";
-    ui_items = "OFF\0"
-               "1.33 (1 vertical image on Twitter)\0"
-               "1.15 (2 vertical image on Twitter)\0"
-               "1.44 (Latter 2 vertical images out of 3 posts)\0"
-               "2.05 (2 horizontal image on Twitter)\0"
-               "1:1  (Instagram)\0";
-> = 0;
+                 "with customizable ratio.\n"
+                 "--    Hints    --\n"
+                 "0.0   | Off\n"
+                 "0~1   | Cropping a portrait from landscape\n"
+                 "        e.g. If you'd like to make scrolling wallpapers on a smartphone\n"
+                 "        with 20:9 Aspect Ratio, set this to 9/20 = 0.450.\n"
+                 "1.0   | Square\n"
+                 "1.125 | 9:8 Portrait Orientation\n"
+                 "1.333 | 4:3 Portrait Orientation\n"
+                 "* The cropping orientation will change when the value is acrossing\n"
+                 "screen aspect ratio (1.777 @ 16:9 screen). Useful for making banners.";
+> = 1.333;
+
+uniform float cLayerVPre_CompositionAOffset <
+    ui_type = "slider";
+    ui_min = -1.0; ui_max = 1.0; ui_step = 0.001;
+    ui_label = "Thumbnail Cropping Shift";
+    ui_tooltip = "Move the thumbnail box around, 0.0 will keep in center.";
+> = 0.0;
 
 uniform float4 UIGridColorARatio <
     ui_type = "color";
@@ -528,60 +537,23 @@ void PS_DrawLine(in float4 pos : SV_Position, float2 texCoord : TEXCOORD, out fl
         }
 }
 
-float3 DrawLineARatio(float3 background, float3 gridColorARatio, float lineWidthARatio, float2 texCoord) {
+float3 DrawLineARatio(float3 background, float3 gridColorARatio, float lineWidthARatio, float thumbRatio, float thumbOffset, float2 texCoord) {
     float3 result;
-
-    sctpoint lineV1 = NewPoint(gridColorARatio, lineWidthARatio, float2(((BUFFER_WIDTH / BUFFER_HEIGHT) * 0.5) * 0.25, texCoord.y));
-    sctpoint lineH1 = NewPoint(gridColorARatio, lineWidthARatio, float2(((BUFFER_WIDTH / BUFFER_HEIGHT) * 0.5) * 1.75, texCoord.y));
+    sctpoint lineV1, lineH1;
+    float Factor = BUFFER_HEIGHT * BUFFER_RCP_WIDTH * thumbRatio;
+    float Center = 0;
+    if(Factor <= 1.0){
+        Center = thumbOffset + 1.0 - Factor * thumbOffset;
+        lineV1 = NewPoint(gridColorARatio, lineWidthARatio, float2((Center - Factor) * 0.5, texCoord.y));
+        lineH1 = NewPoint(gridColorARatio, lineWidthARatio, float2((Center + Factor) * 0.5, texCoord.y));
+    }
+    else{
+        Factor = 1.0 / Factor;
+        Center = thumbOffset + 1.0 - Factor * thumbOffset;
+        lineV1 = NewPoint(gridColorARatio, lineWidthARatio, float2(texCoord.x, (Center - Factor) * 0.5));
+        lineH1 = NewPoint(gridColorARatio, lineWidthARatio, float2(texCoord.x, (Center + Factor) * 0.5));
+    }
     
-    result = DrawPoint(background, lineV1, texCoord);
-    result = DrawPoint(result, lineH1, texCoord);
-
-    return result;
-}
-
-float3 DrawLineARatio_2(float3 background, float3 gridColorARatio, float lineWidthARatio, float2 texCoord) {
-    float3 result;
-
-    sctpoint lineV1 = NewPoint(gridColorARatio, lineWidthARatio, float2(((BUFFER_WIDTH / BUFFER_HEIGHT) * 0.5) * 0.35, texCoord.y));
-    sctpoint lineH1 = NewPoint(gridColorARatio, lineWidthARatio, float2(((BUFFER_WIDTH / BUFFER_HEIGHT) * 0.5) * 1.65, texCoord.y));
-    
-    result = DrawPoint(background, lineV1, texCoord);
-    result = DrawPoint(result, lineH1, texCoord);
-
-    return result;
-}
-
-float3 DrawLineARatio_3(float3 background, float3 gridColorARatio, float lineWidthARatio, float2 texCoord) {
-    float3 result;
-    
-    sctpoint lineV1 = NewPoint(gridColorARatio, lineWidthARatio, float2(((BUFFER_WIDTH / BUFFER_HEIGHT) * 0.5) * 0.69, texCoord.y));
-    sctpoint lineH1 = NewPoint(gridColorARatio, lineWidthARatio, float2(((BUFFER_WIDTH / BUFFER_HEIGHT) * 0.5) * 1.31, texCoord.y));
-
-    result = DrawPoint(background, lineV1, texCoord);
-    result = DrawPoint(result, lineH1, texCoord);
-
-    return result;
-}
-
-float3 DrawLineARatio_4(float3 background, float3 gridColorARatio, float lineWidthARatio, float2 texCoord) {
-    float3 result;
-
-    sctpoint lineV1 = NewPoint(gridColorARatio, lineWidthARatio, float2(((BUFFER_WIDTH / BUFFER_HEIGHT) * 0.5) * 0.514, texCoord.y));
-    sctpoint lineH1 = NewPoint(gridColorARatio, lineWidthARatio, float2(((BUFFER_WIDTH / BUFFER_HEIGHT) * 0.5) * 1.486, texCoord.y));
-    
-    result = DrawPoint(background, lineV1, texCoord);
-    result = DrawPoint(result, lineH1, texCoord);
-
-    return result;
-}
-
-float3 DrawLineARatio_5(float3 background, float3 gridColorARatio, float lineWidthARatio, float2 texCoord) {
-    float3 result;
-    
-    sctpoint lineV1 = NewPoint(gridColorARatio, lineWidthARatio, float2(((BUFFER_WIDTH / BUFFER_HEIGHT) * 0.5) * 0.5, texCoord.y));
-    sctpoint lineH1 = NewPoint(gridColorARatio, lineWidthARatio, float2(((BUFFER_WIDTH / BUFFER_HEIGHT) * 0.5) * 1.5, texCoord.y));
-
     result = DrawPoint(background, lineV1, texCoord);
     result = DrawPoint(result, lineH1, texCoord);
 
@@ -590,32 +562,16 @@ float3 DrawLineARatio_5(float3 background, float3 gridColorARatio, float lineWid
 
 void PS_DrawLineARatio(in float4 pos : SV_Position, float2 texCoord : TEXCOORD, out float4 passColor : SV_Target) {
     const float4 backColor = tex2D(samplerDraw, texCoord);
-        switch(cLayerVPre_CompositionARatio)
-        {
-            default:
-                passColor = float4(backColor.rgb, backColor.a);
-                break;
-            case 1:
-                const float3 DrawLineARatio = DrawLineARatio(backColor.rgb, UIGridColorARatio.rgb, UIGridLineWidthARatio, texCoord);
-                passColor = float4(lerp(backColor.rgb, DrawLineARatio.rgb, UIGridColorARatio.w).rgb, backColor.a);
-                break;
-            case 2:
-                const float3 DrawLineARatio_2 = DrawLineARatio_2(backColor.rgb, UIGridColorARatio.rgb, UIGridLineWidthARatio, texCoord);
-                passColor = float4(lerp(backColor.rgb, DrawLineARatio_2.rgb, UIGridColorARatio.w).rgb, backColor.a);
-                break;
-            case 3:
-                const float3 DrawLineARatio_3 = DrawLineARatio_3(backColor.rgb, UIGridColorARatio.rgb, UIGridLineWidthARatio, texCoord);
-                passColor = float4(lerp(backColor.rgb, DrawLineARatio_3.rgb, UIGridColorARatio.w).rgb, backColor.a);
-                break;
-            case 4:
-                const float3 DrawLineARatio_4 = DrawLineARatio_4(backColor.rgb, UIGridColorARatio.rgb, UIGridLineWidthARatio, texCoord);
-                passColor = float4(lerp(backColor.rgb, DrawLineARatio_4.rgb, UIGridColorARatio.w).rgb, backColor.a);
-                break;
-            case 5:
-                const float3 DrawLineARatio_5 = DrawLineARatio_5(backColor.rgb, UIGridColorARatio.rgb, UIGridLineWidthARatio, texCoord);
-                passColor = float4(lerp(backColor.rgb, DrawLineARatio_5.rgb, UIGridColorARatio.w).rgb, backColor.a);
-                break;
-        }
+    float thumbRatio = cLayerVPre_CompositionARatio;
+    float thumbOffset = cLayerVPre_CompositionAOffset;
+
+    if(thumbRatio != 0.0){
+        const float3 DrawLineARatio = DrawLineARatio(backColor.rgb, UIGridColorARatio.rgb, UIGridLineWidthARatio, thumbRatio, thumbOffset, texCoord);
+        passColor = float4(lerp(backColor.rgb, DrawLineARatio.rgb, UIGridColorARatio.w).rgb, backColor.a);
+    }
+    else{
+        passColor = float4(backColor.rgb, backColor.a);
+    }
 }
 
 float3 bri(float3 backColor, float x)
